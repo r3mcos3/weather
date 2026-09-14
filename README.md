@@ -5,6 +5,7 @@ Omarchy, Quickshell, and `curl`.
 
 The plugin combines public data from [Open-Meteo](https://open-meteo.com/),
 [wttr.in](https://wttr.in/), [RainViewer](https://www.rainviewer.com/),
+[ipwho.is](https://ipwho.is/),
 [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac1a8),
 and [CARTO](https://carto.com/basemaps/) to provide weather forecasts, current
 conditions, radar, satellite imagery, and map tiles. No account, API key, or
@@ -84,19 +85,23 @@ The plugin does not require an account or API key, but it does contact public
 third-party services. When a location is configured, its name and/or
 coordinates are sent to Open-Meteo and wttr.in for weather data, and to
 RainViewer, Esri World Imagery, and CARTO to load map imagery and labels. When
-no location is configured, wttr.in is used for IP-based location detection.
+no location is configured, ipwho.is is used for IP-based location detection.
 Requests use HTTPS. The plugin does not send credentials or store API keys.
 
 ## Configuration
 
 Settings are read through the Omarchy module system. Available options include:
 
-- `unit`: `metric` or `imperial`.
+- `unit`: `auto`, `metric`, or `imperial`. `auto` follows the system timezone
+  (with the system locale as fallback).
 - `refreshMinutes`: refresh interval in minutes.
 
 To choose the temperature unit from the terminal:
 
 ```bash
+# System default
+omarchy bar set io.github.guiestrela.weather unit auto
+
 # Celsius
 omarchy bar set io.github.guiestrela.weather unit metric
 

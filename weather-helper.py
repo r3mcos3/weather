@@ -214,6 +214,20 @@ def fetch(url, timeout, limit):
     return 0
 
 
+def read_timezone():
+    """Print the IANA timezone selected for the system, when available."""
+    zoneinfo_root = "/usr/share/zoneinfo/"
+    resolved = os.path.realpath("/etc/localtime")
+    if not resolved.startswith(zoneinfo_root):
+        return 1
+
+    timezone = resolved[len(zoneinfo_root):]
+    if not timezone or any(part in ("", ".", "..") for part in timezone.split("/")):
+        return 1
+    sys.stdout.write(timezone)
+    return 0
+
+
 def main():
     try:
         if sys.argv[1] == "read" and len(sys.argv) == 3:
@@ -224,6 +238,8 @@ def main():
             return 0
         if sys.argv[1] == "fetch" and len(sys.argv) == 4:
             return fetch(sys.argv[2], sys.argv[3], MAX_RESPONSE)
+        if sys.argv[1] == "timezone" and len(sys.argv) == 2:
+            return read_timezone()
     except (OSError, ValueError, IndexError):
         return 1
     return 1
