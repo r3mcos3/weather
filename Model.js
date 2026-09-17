@@ -242,7 +242,7 @@ function shouldUseImperial(unitOverride, localeName, countryName, measurementSys
 // useImperial (mph/km-h), otherwise the explicit choice always wins.
 function resolvedWindUnit(unitOverride, useImperial) {
   var unit = normalizedUnit(unitOverride)
-  if (unit === "kmh" || unit === "mph" || unit === "ms" || unit === "kn") return unit
+  if (unit === "kmh" || unit === "mph" || unit === "ms" || unit === "kn" || unit === "bf") return unit
   return useImperial ? "mph" : "kmh"
 }
 
@@ -251,8 +251,19 @@ function windUnitLabel(unit) {
     case "mph": return "mph"
     case "ms": return "m/s"
     case "kn": return "kn"
+    case "bf": return "Bft"
     default: return "km/h"
   }
+}
+
+// Standard Beaufort scale, upper bound of each force's km/h range.
+var BEAUFORT_KMPH_UPPER_BOUNDS = [1, 5, 11, 19, 28, 38, 49, 61, 74, 88, 102, 117]
+
+function beaufortForce(kmph) {
+  for (var force = 0; force < BEAUFORT_KMPH_UPPER_BOUNDS.length; force++) {
+    if (kmph <= BEAUFORT_KMPH_UPPER_BOUNDS[force]) return force
+  }
+  return 12
 }
 
 function windSpeedFromKmph(kmph, unit) {
@@ -262,6 +273,7 @@ function windSpeedFromKmph(kmph, unit) {
     case "mph": return roundedTemp(n * 0.621371)
     case "ms": return roundedTemp(n / 3.6)
     case "kn": return roundedTemp(n / 1.852)
+    case "bf": return String(beaufortForce(n))
     default: return roundedTemp(n)
   }
 }
