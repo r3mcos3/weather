@@ -238,6 +238,44 @@ function shouldUseImperial(unitOverride, localeName, countryName, measurementSys
   return localeUsesImperial(localeName)
 }
 
+// Wind speed unit is independent of the temperature unit: "auto" follows
+// useImperial (mph/km-h), otherwise the explicit choice always wins.
+function resolvedWindUnit(unitOverride, useImperial) {
+  var unit = normalizedUnit(unitOverride)
+  if (unit === "kmh" || unit === "mph" || unit === "ms" || unit === "kn") return unit
+  return useImperial ? "mph" : "kmh"
+}
+
+function windUnitLabel(unit) {
+  switch (unit) {
+    case "mph": return "mph"
+    case "ms": return "m/s"
+    case "kn": return "kn"
+    default: return "km/h"
+  }
+}
+
+function windSpeedFromKmph(kmph, unit) {
+  var n = parseFloat(String(kmph))
+  if (isNaN(n)) return ""
+  switch (unit) {
+    case "mph": return roundedTemp(n * 0.621371)
+    case "ms": return roundedTemp(n / 3.6)
+    case "kn": return roundedTemp(n / 1.852)
+    default: return roundedTemp(n)
+  }
+}
+
+// `current` carries windspeedKmph from both wttr.in and the Open-Meteo
+// adapter, so every source can be converted to any displayed unit from that
+// one shared baseline.
+function formatWindSpeed(current, unitOverride, useImperial) {
+  if (!current) return ""
+  var unit = resolvedWindUnit(unitOverride, useImperial)
+  var value = windSpeedFromKmph(current.windspeedKmph, unit)
+  return value === "" ? "" : value + " " + windUnitLabel(unit)
+}
+
 function dayName(dateString, formatter) {
   if (!dateString) return ""
   var d = new Date(dateString + "T12:00:00")
@@ -530,6 +568,10 @@ if (typeof module !== "undefined") {
     timeZoneUsesImperial: timeZoneUsesImperial,
     countryUsesImperial: countryUsesImperial,
     shouldUseImperial: shouldUseImperial,
+    resolvedWindUnit: resolvedWindUnit,
+    windUnitLabel: windUnitLabel,
+    windSpeedFromKmph: windSpeedFromKmph,
+    formatWindSpeed: formatWindSpeed,
     dayName: dayName,
     openMeteoForecastDays: openMeteoForecastDays,
     openMeteoForecastTimeline: openMeteoForecastTimeline,
