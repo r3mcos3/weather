@@ -416,7 +416,7 @@ Panel {
   readonly property string reportHumidity:  current ? (current.humidity + "%") : ""
 
   function cycleWindUnit() {
-    var order = ["kmh", "mph", "ms", "kn"]
+    var order = ["kmh", "mph", "ms", "kn", "bf"]
     var active = Model.resolvedWindUnit(root.windUnitOverride || setting("windUnit", "auto"), root.useImperial)
     root.windUnitOverride = order[(order.indexOf(active) + 1) % order.length]
     root.savePanelState()
