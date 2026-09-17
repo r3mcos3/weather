@@ -407,8 +407,14 @@ Panel {
   readonly property string reportTempNum:   current ? String(useImperial ? current.temp_F : current.temp_C) : ""
   readonly property string tempUnit:        "°" + (useImperial ? "F" : "C")
   readonly property string reportFeels:     current ? formatTemp(useImperial ? current.FeelsLikeF : current.FeelsLikeC) : ""
-  readonly property string reportWind:      current ? (useImperial ? (current.windspeedMiles + " mph") : (current.windspeedKmph + " km/h")) : ""
+  readonly property string reportWind:      current ? Model.formatWindSpeed(current, setting("windUnit", "auto"), useImperial) : ""
   readonly property string reportHumidity:  current ? (current.humidity + "%") : ""
+
+  // Timestamp of the last successful fetch (either source), shown next to
+  // the location label. A plain string rather than a Date so the hero row
+  // doesn't need to re-derive formatting on every repaint.
+  property string lastUpdatedText: ""
+  function markUpdated() { lastUpdatedText = Qt.formatTime(new Date(), "HH:mm") }
 
   function refresh() {
     // Each full refresh cycle gets a fresh retry budget, so an earlier
@@ -649,6 +655,7 @@ Panel {
           var parsed = Model.normalizeWttrResponse(JSON.parse(raw))
           if (!parsed) throw new Error("Invalid wttr response")
           root.report = parsed
+          root.markUpdated()
           root.mapRevision++
           if (!root.hasConfiguredCoordinates)
             root.label = Model.provisionalCurrentIcon(parsed.current_condition && parsed.current_condition[0], root.label)
@@ -710,6 +717,7 @@ Panel {
           var parsed = JSON.parse(raw)
           var parsedCurrent = Model.openMeteoCurrentCondition(parsed)
           root.dailyForecastReport = parsed
+          root.markUpdated()
           root.label = Model.currentIcon(parsedCurrent, root.label)
           root.dailyForecastRetries = 0
           if (Model.weatherResponseCompletesSave(root.hasConfiguredCoordinates, "open-meteo"))
@@ -939,6 +947,15 @@ Panel {
               }
             }
 
+          }
+
+          Text {
+            visible: !root.editingLocation && root.lastUpdatedText !== ""
+            text: "Updated " + root.lastUpdatedText
+            textFormat: Text.PlainText
+            color: Qt.darker(root.bar.foreground, 1.6)
+            font.family: root.bar.fontFamily
+            font.pixelSize: Style.font.caption
           }
 
           Row {
